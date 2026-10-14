@@ -14,9 +14,7 @@ services:
       - notes-app
 
   django_app:
-    build:
-      context: .
-    image: django_app
+    image: logaomajay/notes_app
     container_name: "django_cont"
     command: sh -c "python manage.py migrate --noinput && gunicorn notesapp.wsgi --bind 0.0.0.0:8000"
     ports:
