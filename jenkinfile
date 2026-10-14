@@ -1,0 +1,42 @@
+pipeline {
+    agent { label "agent_node" }
+
+    stages {
+        stage('code') {
+            steps {
+                echo 'to clone the project from github'
+                git url: "https://github.com/Ajaylogaom1/deploy_flask_app_on_docker.git", branch: "main"
+                echo "the project clones sucessfully"
+            }
+        }
+        stage('build') {
+            steps {
+                echo 'to build the project using docker'
+                sh "docker build -t notes_app:latest ."
+                echo "docker image built sucessfully"
+            }
+        }
+        stage('push code in dockerhub') {
+            steps {
+                echo 'pushing code in dockerhub'
+                withCredentials([
+                      usernamePassword(
+                          credentialsId: 'dockerhub',
+                          usernameVariable: 'DOCKER_USER',
+                          passwordVariable: 'DOCKER_PASS'
+                         )
+               ]) {
+                sh "docker login -u ${env.DOCKER_USER} -p ${env.DOCKER_PASS}"
+                sh "docker image tag notes_app:latest ${env.DOCKER_USER}/notes_app:latest"
+                sh "docker push ${env.DOCKER_USER}/notes_app:latest"
+               }
+            }
+        }
+        stage('deploy') {
+            steps {
+                echo 'to deploy the code'
+                sh "docker compose up -d"
+            }
+        }
+    }
+}
